@@ -312,34 +312,34 @@
 <div class="wrap" id="mainView">
   <div class="eyebrow">Order form</div>
   <h1>English Grammar<br>Full Book</h1>
-  <p class="subtitle">အင်္ဂလိပ်သဒ္ဒါ စာအုပ် အပြည့်အစုံ — fill in your details below to confirm your order.</p>
+  <p class="subtitle">အင်္ဂလိပ်သဒ္ဒါ စာအုပ် အပြည့်အစုံ — စာအုပ်ဝယ်ယူရန် သင့်အချက်အလက်များဖြည့်စွက်ပါ.</p>
   <div class="price-tag">20,000 MMK <span>Price</span></div>
 
-  <div class="step-label">1 · Choose how you paid</div>
+  <div class="step-label">1 · ငွေပေးချေမည့်နည်းလမ်းတစ်ခု ရွေးချယ်ပါ </div>
   <div class="ticket" id="methodsCard"></div>
 
   <div id="detailsWrap"></div>
 
-  <div class="step-label">2 · Your details</div>
+  <div class="step-label">၂ · သင့်အချက်လက်များဖြည့်စွက်ရန်</div>
   <div class="ticket">
     <div class="form-section">
       <div class="field" id="nameField">
-        <label>Full name</label>
+        <label>သင့်အမည်</label>
         <input type="text" id="buyerName" placeholder="e.g. Mg Mg">
         <div class="error-msg">Please enter your name.</div>
       </div>
       <div class="field" id="emailField">
-        <label>Email <span class="hint">— we'll send your book here</span></label>
-        <input type="email" id="buyerEmail" placeholder="e.g. mgmg@email.com">
+        <label>သင့် Email(အီးမေးလ်) <span class="hint">— ဤ Email (အီးမေးလ်)သို့ စာအုပ်ပေးပို့ပါမည်</span></label>
+        <input type="email" id="buyerEmail" placeholder="ဥပမာ - mgmg@email.com">
         <div class="error-msg">Please enter a valid email.</div>
       </div>
       <div class="field" id="uploadField">
-        <label>Payment screenshot</label>
+        <label>ငွေလွှဲမှတ်တမ်းပြေစာဓာတ်ပုံ/Screenshot</label>
         <div class="upload-box" id="uploadBox">
           <input type="file" id="fileInput" accept="image/*">
           <div id="uploadPlaceholder">
             <div class="upload-icon">📎</div>
-            <div class="upload-text">Tap to upload proof of payment</div>
+            <div class="upload-text">ငွေလွှဲမှတ်တမ်းပြေစာအ‌ထောက်အထားဓာတ်ပုံ</div>
           </div>
         </div>
         <div class="error-msg">Please upload your payment screenshot.</div>
@@ -381,18 +381,18 @@
 <script>
 const METHODS = [
   {
-    id:'kbz', title:'KBZ Pay', sub:'Aye Ko San · 09664214053',
+    id:'kbz', title:'KBZ Pay',
     render:()=>`
-      <div class="detail-row"><span class="detail-label">Pay to</span><span class="detail-value">KBZ Pay</span></div>
-      <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">Aye Ko San</span></div>
-      <div class="detail-row"><span class="detail-label">Number</span><span class="detail-value">09664214053 ${copyBtn('09664214053')}</span></div>`
+      <div class="detail-row"><span class="detail-label">ငွေပေးချေမည့် နည်းလမ်း</span><span class="detail-value">KBZ Pay</span></div>
+      <div class="detail-row"><span class="detail-label">အကောင့်အမည်</span><span class="detail-value">Aye Ko San</span></div>
+      <div class="detail-row"><span class="detail-label">K pay နံပါတ်</span><span class="detail-value">09664214053 ${copyBtn('09664214053')}</span></div>`
   },
   {
-    id:'wave', title:'Wave Money / Pay', sub:'Lay Khin · 09966864800',
+    id:'wave', title:'Wave Money',
     render:()=>`
-      <div class="detail-row"><span class="detail-label">Pay to</span><span class="detail-value">Wave Pay</span></div>
-      <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">Lay Khin</span></div>
-      <div class="detail-row"><span class="detail-label">Number</span><span class="detail-value">09966864800 ${copyBtn('09966864800')}</span></div>`
+      <div class="detail-row"><span class="detail-label">ငွေပေးချေမည့်နည်းလမ်း</span><span class="detail-value">Wave Pay</span></div>
+      <div class="detail-row"><span class="detail-label">အကောင့်နာမည်</span><span class="detail-value">Lay Khin</span></div>
+      <div class="detail-row"><span class="detail-label">အကောင့်နံပတ်</span><span class="detail-value">09966864800 ${copyBtn('09966864800')}</span></div>`
   },
   {
     id:'japan', title:'Japan Bank Account', sub:'Bank transfer',
