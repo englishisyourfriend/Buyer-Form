@@ -574,6 +574,10 @@ const fileInput = document.getElementById('fileInput');
 const uploadPlaceholder = document.getElementById('uploadPlaceholder');
 const uploadPreviewWrap = document.getElementById('uploadPreviewWrap');
 
+// The placeholder's original markup, so we can always restore it exactly
+// (used both on upload failure and when resetForm() runs).
+const UPLOAD_PLACEHOLDER_HTML = '<div class="upload-icon">📎</div><div class="upload-text">ငွေလွှဲမှတ်တမ်းပြေစာအ‌ထောက်အထားဓာတ်ပုံ</div>';
+
 // Firestore documents have a 1MB size limit. Phone camera photos, once
 // base64-encoded, easily blow past that — so we resize + recompress the
 // screenshot client-side before it's ever stored.
@@ -622,7 +626,6 @@ fileInput.addEventListener('change', async (e)=>{
     fileInput.value = '';
     return;
   }
-  uploadPlaceholder.textContent = '';
   uploadPlaceholder.innerHTML = '<div class="upload-text">Processing image…</div>';
   try{
     const dataUrl = await compressUntilSmall(file);
@@ -637,7 +640,7 @@ fileInput.addEventListener('change', async (e)=>{
     console.error(err);
     alert('Could not process that image. Please try a different photo.');
     fileInput.value = '';
-    uploadPlaceholder.innerHTML = '<div class="upload-icon">📎</div><div class="upload-text">ငွေလွှဲမှတ်တမ်းပြေစာအ‌ထောက်အထားဓာတ်ပုံ</div>';
+    uploadPlaceholder.innerHTML = UPLOAD_PLACEHOLDER_HTML;
   }
 });
 
@@ -664,6 +667,9 @@ function resetForm(){
   detailsWrap.innerHTML = '';
   document.getElementById('buyerName').value = '';
   document.getElementById('buyerEmail').value = '';
+  // FIX: restore the placeholder's original icon+label markup — otherwise
+  // it stays stuck showing "Processing image…" from the last upload.
+  uploadPlaceholder.innerHTML = UPLOAD_PLACEHOLDER_HTML;
   uploadPlaceholder.style.display = '';
   uploadPreviewWrap.style.display = 'none';
   uploadBox.classList.remove('has-image');
@@ -747,10 +753,8 @@ async function submitOrder(){
       order_id: orderId,
       method: orderData.methodTitle
     });
-    alert('DEBUG: buyer email send call SUCCEEDED (EmailJS accepted it). If it still doesn\'t arrive, check spam/junk on ' + orderData.email + '.');
   }catch(e){
     console.warn('Could not send buyer confirmation email:', e);
-    alert('DEBUG: buyer email FAILED to send.\n\nError: ' + (e && (e.text || e.message) ? (e.text || e.message) : JSON.stringify(e)) + '\n\nStatus: ' + (e && e.status ? e.status : 'unknown'));
   }
 
   const SELLER_EMAIL = "heloryxx@gmail.com"; // change this if this isn't your inbox
@@ -763,10 +767,8 @@ async function submitOrder(){
       order_id: orderId,
       method: orderData.methodTitle
     });
-    alert('DEBUG: seller email send call SUCCEEDED.');
   }catch(e){
     console.warn('Could not send seller notification email:', e);
-    alert('DEBUG: seller email FAILED to send.\n\nError: ' + (e && (e.text || e.message) ? (e.text || e.message) : JSON.stringify(e)) + '\n\nStatus: ' + (e && e.status ? e.status : 'unknown'));
   }
 
   document.getElementById('refCode').textContent = orderId;
