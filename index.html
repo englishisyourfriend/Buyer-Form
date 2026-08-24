@@ -136,10 +136,11 @@
   .perforation::before{left:-9px;}
   .perforation::after{right:-9px;}
 
+  /* detail rows — label and value both left-aligned, stacked */
   .detail-row{
     display:flex;
-    justify-content:space-between;
-    align-items:center;
+    flex-direction:column;
+    align-items:flex-start;
     padding:9px 0;
     border-bottom:1px dashed var(--divider);
   }
@@ -152,6 +153,7 @@
     display:flex;
     align-items:center;
     gap:8px;
+    margin-top:3px;
   }
   .copy-btn{
     border:none;
@@ -312,7 +314,7 @@
 <div class="wrap" id="mainView">
   <div class="eyebrow">Order form</div>
   <h1>English Grammar<br>Full Book</h1>
-  <p class="subtitle">အင်္ဂလိပ်သဒ္ဒါ စာအုပ် အပြည့်အစုံ — စာအုပ်ဝယ်ယူရန် သင့်အချက်အလက်များဖြည့်စွက်ပါ.</p>
+  <p class="subtitle">အင်္ဂလိပ်သဒ္ဒါ စာအုပ် အပြည့်အစုံ — စာအုပ်ဝယ်ယူရန် သင့်အချက်အလက်များ‌ အောက်တွင် ဖြည့်စွက်ပါ.</p>
   <div class="price-tag">20,000 MMK <span>Price</span></div>
 
   <div class="step-label">1 · ငွေပေးချေမည့်နည်းလမ်းတစ်ခု ရွေးချယ်ပါ </div>
@@ -449,7 +451,7 @@ methodsCard.innerHTML = METHODS.map(m => `
     <input type="radio" name="method" value="${m.id}">
     <div class="m-text">
       <div class="m-title">${m.title}</div>
-      <div class="m-sub">${m.sub}</div>
+      ${m.sub ? `<div class="m-sub">${m.sub}</div>` : ''}
     </div>
   </label>
 `).join('');
