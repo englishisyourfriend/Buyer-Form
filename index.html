@@ -350,7 +350,7 @@
     </div>
   </div>
 
-  <div class="footer-note">Your info is only visible to the seller. <button id="adminLink">Seller login</button></div>
+  <div class="footer-note">Your info is only visible to the seller.</div>
 </div>
 
 <div class="wrap" id="successView">
@@ -360,24 +360,6 @@
     <p>We've got your payment confirmation. Your book will be sent to your email shortly.</p>
     <div class="ref-code" id="refCode"></div>
   </div>
-</div>
-
-<div class="wrap admin-panel" id="passcodeView" style="display:none;">
-  <div class="passcode-box">
-    <div class="eyebrow" style="justify-content:center;">Seller login</div>
-    <p style="color:var(--muted);font-size:13px;">Enter your passcode to view orders</p>
-    <input type="text" id="passcodeInput" placeholder="Passcode">
-    <button class="submit-btn" id="passcodeSubmit">Enter</button>
-    <p style="margin-top:14px;"><button class="back-link" id="passcodeCancel">← Back to form</button></p>
-  </div>
-</div>
-
-<div class="wrap admin-panel" id="adminView" style="display:none;">
-  <div class="admin-header">
-    <h2>Orders</h2>
-    <button class="back-link" id="adminBack">← Back</button>
-  </div>
-  <div id="ordersList"><div class="empty-state">Loading…</div></div>
 </div>
 
 <script>
@@ -500,7 +482,9 @@ fileInput.addEventListener('change', (e)=>{
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-      uploadedImage = {dataUrl, name: file.name};
+      canvas.toBlob((blob)=>{
+        uploadedImage = {dataUrl, blob, name: file.name};
+      }, 'image/jpeg', 0.75);
       uploadBox.classList.add('has-image');
       uploadBox.innerHTML = `<img class="upload-preview" src="${dataUrl}"><div class="upload-filename">${file.name} — tap to change</div>`;
       document.getElementById('uploadField').classList.remove('invalid');
@@ -539,95 +523,41 @@ document.getElementById('submitBtn').addEventListener('click', async ()=>{
     method: selectedMethod,
     methodTitle: METHODS.find(m=>m.id===selectedMethod).title,
     name, email,
-    screenshot: uploadedImage.dataUrl,
     submittedAt: new Date().toISOString()
   };
 
   try{
-    await window.storage.set('orders:' + order.id, JSON.stringify(order), true);
+    // send everything — including the payment screenshot — to Formspree.
+    // Formspree accepts multipart/form-data with a real file field, so the
+    // screenshot arrives as an email attachment. No external storage needed.
+    const fd = new FormData();
+    fd.append('_subject', `New order — ${order.methodTitle} — ${order.name}`);
+    fd.append('Reference', order.id);
+    fd.append('Name', order.name);
+    fd.append('Email', order.email);
+    fd.append('Payment method', order.methodTitle);
+    fd.append('Submitted at', order.submittedAt);
+    fd.append('Screenshot', uploadedImage.blob, uploadedImage.name || 'payment-screenshot.jpg');
 
-    // notify seller by email via Formspree (no screenshot attached — image is in the admin panel)
-    try{
-      await fetch('https://formspree.io/f/heloryxx@gmail.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          _subject: `New order — ${order.methodTitle} — ${order.name}`,
-          Reference: order.id,
-          Name: order.name,
-          Email: order.email,
-          'Payment method': order.methodTitle,
-          'Submitted at': order.submittedAt
-        })
-      });
-    }catch(emailErr){
-      // don't block order success if email notification fails
-      console.warn('Email notification failed', emailErr);
-    }
+    const res = await fetch('https://formspree.io/f/heloryxx@gmail.com', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: fd
+    });
+
+    if(!res.ok) throw new Error('Formspree responded with ' + res.status);
 
     document.getElementById('refCode').textContent = order.id;
     document.getElementById('mainView').style.display = 'none';
     document.getElementById('successView').querySelector('.ticket').classList.add('active');
     document.getElementById('successView').style.display = 'block';
   }catch(err){
+    console.warn('Order submission failed', err);
     alert('Something went wrong submitting your order. Please try again.');
     btn.disabled = false;
     btn.textContent = 'Submit order';
   }
 });
-
-// admin flow
-document.getElementById('adminLink').addEventListener('click', ()=>{
-  document.getElementById('mainView').style.display = 'none';
-  document.getElementById('passcodeView').style.display = 'block';
-});
-document.getElementById('passcodeCancel').addEventListener('click', ()=>{
-  document.getElementById('passcodeView').style.display = 'none';
-  document.getElementById('mainView').style.display = 'block';
-});
-document.getElementById('passcodeSubmit').addEventListener('click', async ()=>{
-  const val = document.getElementById('passcodeInput').value.trim();
-  if(val !== '1234'){ // simple shared passcode — change as needed
-    alert('Incorrect passcode.');
-    return;
-  }
-  document.getElementById('passcodeView').style.display = 'none';
-  document.getElementById('adminView').style.display = 'block';
-  await loadOrders();
-});
-document.getElementById('adminBack').addEventListener('click', ()=>{
-  document.getElementById('adminView').style.display = 'none';
-  document.getElementById('mainView').style.display = 'block';
-});
-
-async function loadOrders(){
-  const listEl = document.getElementById('ordersList');
-  try{
-    const res = await window.storage.list('orders:', true);
-    if(!res || !res.keys || res.keys.length === 0){
-      listEl.innerHTML = '<div class="empty-state">No orders yet.</div>';
-      return;
-    }
-    const orders = [];
-    for(const key of res.keys){
-      try{
-        const r = await window.storage.get(key, true);
-        if(r) orders.push(JSON.parse(r.value));
-      }catch(e){}
-    }
-    orders.sort((a,b)=> new Date(b.submittedAt) - new Date(a.submittedAt));
-    listEl.innerHTML = orders.map(o => `
-      <div class="order-card">
-        <div class="order-meta"><b>${o.name}</b> — ${o.email}</div>
-        <div class="order-meta">Method: <b>${o.methodTitle}</b> · Ref: ${o.id}</div>
-        <div class="order-meta">${new Date(o.submittedAt).toLocaleString()}</div>
-        <img src="${o.screenshot}" alt="Payment screenshot">
-      </div>
-    `).join('');
-  }catch(e){
-    listEl.innerHTML = '<div class="empty-state">Could not load orders.</div>';
-  }
-}
 </script>
 </body>
 </html>
