@@ -388,7 +388,23 @@
   }
   .status-badge.pending{background:transparent;color:var(--brass);border:1px solid var(--brass);}
   .status-badge.succeed{background:var(--green);color:var(--green-ink);}
+  .status-badge.rejected{background:var(--rust);color:var(--green-ink);}
   .status-badge.notfound{background:transparent;color:var(--rust);border:1px solid var(--rust);}
+
+  .order-card-actions{display:flex;gap:8px;margin-top:10px;}
+  .order-card-actions .submit-btn{margin-top:0;}
+  .reject-btn{
+    background:transparent;
+    color:var(--rust);
+    border:1.5px solid var(--rust);
+  }
+  .reject-btn:hover{background:rgba(174,58,44,0.08);filter:none;}
+  .undo-reject-btn{
+    background:transparent;
+    color:var(--green);
+    border:1.5px solid var(--green);
+  }
+  .undo-reject-btn:hover{background:rgba(46,74,60,0.08);filter:none;}
 
   .admin-panel{max-width:480px;margin:0 auto;}
   .admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
@@ -912,8 +928,8 @@ async function checkStatus(){
       resultBox.innerHTML = `<b>${orderId}</b><div class="status-badge notfound">Not found</div>`;
     }else{
       const data = doc.data();
-      const badgeClass = data.status === 'succeed' ? 'succeed' : 'pending';
-      const label = data.status === 'succeed' ? 'Succeed' : 'Pending';
+      const badgeClass = data.status === 'succeed' ? 'succeed' : (data.status === 'rejected' ? 'rejected' : 'pending');
+      const label = data.status === 'succeed' ? 'Succeed' : (data.status === 'rejected' ? 'Rejected' : 'Pending');
       resultBox.innerHTML = `<b>${orderId}</b><div class="status-badge ${badgeClass}">${label}</div>`;
     }
   }catch(e){
@@ -962,18 +978,39 @@ async function loadOrders(){
       const d = doc.data();
       const card = document.createElement('div');
       card.className = 'order-card';
-      const badgeClass = d.status === 'succeed' ? 'succeed' : 'pending';
-      const label = d.status === 'succeed' ? 'Succeed' : 'Pending';
+      const badgeClass = d.status === 'succeed' ? 'succeed' : (d.status === 'rejected' ? 'rejected' : 'pending');
+      const label = d.status === 'succeed' ? 'Succeed' : (d.status === 'rejected' ? 'Rejected' : 'Pending');
+      const isRejected = d.status === 'rejected';
       const nextStatus = d.status === 'succeed' ? 'pending' : 'succeed';
       const btnLabel = d.status === 'succeed' ? 'Mark as pending' : 'Mark as paid (succeed)';
+
+      // Rejected orders only get an "undo" button back to pending — a
+      // rejected order shouldn't be one click away from "succeed".
+      const actionsHtml = isRejected
+        ? `<button class="submit-btn undo-reject-btn toggle-status-btn">Undo rejection (set pending)</button>`
+        : `<button class="submit-btn toggle-status-btn">${btnLabel}</button>
+           <button class="submit-btn reject-btn reject-order-btn">Reject order</button>`;
+
       card.innerHTML = `
         <div><b>${doc.id}</b> · <span class="status-badge ${badgeClass}">${label}</span></div>
         <div class="order-meta"><b>Name:</b> ${escapeHtml(d.name||'')}</div>
         <div class="order-meta"><b>Email:</b> ${escapeHtml(d.email||'')}</div>
         <div class="order-meta"><b>Method:</b> ${escapeHtml(d.methodTitle||d.method||'')}</div>
         ${d.screenshot ? `<img src="${d.screenshot}" alt="Payment screenshot">` : ''}
-        <button class="submit-btn toggle-status-btn" style="margin-top:10px;">${btnLabel}</button>`;
-      card.querySelector('.toggle-status-btn').addEventListener('click', ()=> toggleStatus(doc.id, nextStatus));
+        <div class="order-card-actions">${actionsHtml}</div>`;
+
+      const toggleBtn = card.querySelector('.toggle-status-btn');
+      if(toggleBtn){
+        toggleBtn.addEventListener('click', ()=> toggleStatus(doc.id, isRejected ? 'pending' : nextStatus));
+      }
+      const rejectBtn = card.querySelector('.reject-order-btn');
+      if(rejectBtn){
+        rejectBtn.addEventListener('click', ()=>{
+          if(confirm(`Reject order ${doc.id}? The buyer's order will be marked rejected.`)){
+            toggleStatus(doc.id, 'rejected');
+          }
+        });
+      }
       list.appendChild(card);
     });
   }catch(e){
