@@ -5,124 +5,161 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Order &amp; Payment — English Grammar Full Book</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Libre+Franklin:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <!-- Firebase (free Firestore database, used for order status lookup) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!-- EmailJS (free email sending, used to email buyer their reference number) -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<!-- Getly (direct Visa / Mastercard checkout button) -->
+<script src="https://www.getly.store/pay.js" async></script>
 <style>
   :root{
-    --paper:#F7F4EE;
-    --ink:#1B3A38;
-    --gold:#C9A227;
-    --teal:#2F6F5E;
-    --muted:#8A8378;
-    --divider:#E4DCC8;
-    --white:#FFFDF8;
-    --error:#B3432B;
+    /* Library card catalog: aged card stock, library green, stamp-ink red, brass tabs */
+    --desk:#EAE1C8;
+    --card:#F7F1DF;
+    --card-edge:#DCCFA6;
+    --ink:#2B2419;
+    --muted:#8A7C60;
+    --green:#2E4A3C;
+    --green-ink:#EAF2ED;
+    --rust:#AE3A2C;
+    --brass:#A6812E;
+    --divider:#D9CBA0;
+    --error:#AE3A2C;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--paper);
+    background:var(--desk);
     background-image:
-      radial-gradient(circle at 10% 5%, rgba(47,111,94,0.05), transparent 40%),
-      radial-gradient(circle at 90% 90%, rgba(201,162,39,0.06), transparent 40%);
-    font-family:'Inter', sans-serif;
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.025) 0px, rgba(0,0,0,0.025) 1px, transparent 1px, transparent 3px),
+      radial-gradient(circle at 15% 0%, rgba(174,58,44,0.05), transparent 45%),
+      radial-gradient(circle at 85% 100%, rgba(46,74,60,0.06), transparent 45%);
+    font-family:'Libre Franklin', sans-serif;
     color:var(--ink);
     min-height:100vh;
-    padding:32px 16px 64px;
+    padding:36px 16px 64px;
   }
   .wrap{max-width:480px;margin:0 auto;}
 
   .eyebrow{
     font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
+    font-size:9.5px;
     letter-spacing:0.14em;
     text-transform:uppercase;
-    color:var(--teal);
-    margin-bottom:8px;
+    color:var(--green);
+    margin-bottom:5px;
     display:flex;
     align-items:center;
-    gap:8px;
-  }
-  .eyebrow::before{content:"";width:16px;height:1px;background:var(--teal);display:inline-block;}
-  h1{
-    font-family:'Fraunces', serif;
+    gap:6px;
     font-weight:600;
-    font-size:28px;
-    line-height:1.2;
-    margin:0 0 4px;
   }
-  .subtitle{color:var(--muted);font-size:14px;margin:0 0 20px;}
+  .eyebrow::before{content:"№";font-family:'Special Elite',monospace;color:var(--rust);}
+  h1{
+    font-family:'Special Elite', monospace;
+    font-weight:400;
+    font-size:19px;
+    line-height:1.25;
+    margin:0 0 4px;
+    color:var(--ink);
+    letter-spacing:0.01em;
+  }
+  .subtitle{color:var(--muted);font-size:11.5px;margin:0 0 10px;line-height:1.4;}
   .price-tag{
+    position:relative;
     display:inline-flex;
     align-items:baseline;
-    gap:6px;
-    background:var(--ink);
-    color:var(--white);
-    padding:8px 14px;
-    border-radius:100px;
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:18px;
-    margin-bottom:28px;
+    gap:5px;
+    background:transparent;
+    color:var(--rust);
+    padding:3px 3px;
+    border-top:1.5px solid var(--rust);
+    border-bottom:1.5px solid var(--rust);
+    font-family:'Special Elite', monospace;
+    font-weight:400;
+    font-size:14px;
+    margin-bottom:0;
+    transform:rotate(-1.2deg);
   }
   .price-tag span{
-    font-family:'Inter', sans-serif;
-    font-weight:500;
-    font-size:11px;
-    color:var(--gold);
+    font-family:'IBM Plex Mono', sans-serif;
+    font-weight:600;
+    font-size:8.5px;
+    color:var(--brass);
     text-transform:uppercase;
     letter-spacing:0.08em;
   }
 
   .step-label{
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    letter-spacing:0.06em;
-    color:var(--muted);
+    font-size:11.5px;
+    letter-spacing:0.08em;
+    color:var(--green);
     text-transform:uppercase;
-    margin:28px 0 12px;
+    margin:30px 0 10px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:8px;
   }
+  .step-label::after{content:"";flex:1;height:1px;background:repeating-linear-gradient(to right, var(--brass) 0 4px, transparent 4px 8px);opacity:0.6;}
 
   .ticket{
     position:relative;
-    background:var(--white);
-    border:1px solid var(--divider);
-    border-radius:14px;
-    box-shadow:0 1px 2px rgba(27,58,56,0.04);
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:3px;
+    box-shadow:0 1px 0 var(--card-edge), 0 6px 14px rgba(43,36,25,0.12);
     overflow:hidden;
+  }
+  .ticket::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0; height:5px;
+    background:var(--green);
   }
 
   .method{
     display:flex;
     align-items:center;
     gap:12px;
-    padding:16px;
-    border-bottom:1px solid var(--divider);
+    padding:15px 16px 15px 20px;
+    border-bottom:1px dashed var(--divider);
     cursor:pointer;
     transition:background 0.15s ease;
   }
   .method:last-child{border-bottom:none;}
-  .method:hover{background:rgba(47,111,94,0.04);}
-  .method input{accent-color:var(--teal); width:18px; height:18px; flex-shrink:0;}
+  .method:hover{background:rgba(46,74,60,0.06);}
+  .method input{accent-color:var(--green); width:16px; height:16px; flex-shrink:0;}
   .method .m-text{flex:1;}
-  .method .m-title{font-weight:600;font-size:15px;}
-  .method .m-sub{font-size:12px;color:var(--muted);margin-top:1px;}
-  .method.selected{background:rgba(47,111,94,0.06);}
+  .method .m-title{font-weight:700;font-size:14.5px;color:var(--ink);font-family:'Libre Franklin',sans-serif;}
+  .method .m-sub{font-size:11.5px;color:var(--muted);margin-top:1px;font-family:'IBM Plex Mono',monospace;}
+  .method.selected{background:rgba(46,74,60,0.1);}
+  .method.selected .m-title::before{content:"▸ ";color:var(--rust);}
+  .getly-method-row{
+    width:100%;
+    text-align:left;
+    background:rgba(166,129,46,0.08);
+    border:none;
+    border-top:1px dashed var(--divider);
+    font-family:'Libre Franklin', sans-serif;
+    padding:15px 16px 15px 20px;
+  }
+  .getly-method-row:hover{background:rgba(166,129,46,0.16);}
+  .getly-method-row .m-title{color:var(--rust);}
 
   .stub{
     display:none;
     position:relative;
-    padding:20px 18px 22px;
+    padding:20px 20px 22px;
+    background:repeating-linear-gradient(-45deg, transparent 0 10px, rgba(43,36,25,0.02) 10px 11px);
   }
   .stub.active{display:block;}
   .perforation{
     position:relative;
     height:1px;
-    background:repeating-linear-gradient(to right, var(--divider) 0 6px, transparent 6px 12px);
+    background:repeating-linear-gradient(to right, var(--card-edge) 0 6px, transparent 6px 12px);
     margin:0 -1px;
   }
   .perforation::before,.perforation::after{
@@ -130,7 +167,7 @@
     position:absolute;
     top:-9px;
     width:18px;height:18px;
-    background:var(--paper);
+    background:var(--desk);
     border-radius:50%;
   }
   .perforation::before{left:-9px;}
@@ -144,129 +181,160 @@
     border-bottom:1px dashed var(--divider);
   }
   .detail-row:last-child{border-bottom:none;}
-  .detail-label{font-size:12px;color:var(--muted);}
+  .detail-label{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.04em;}
   .detail-value{
     font-family:'IBM Plex Mono', monospace;
     font-weight:600;
     font-size:14px;
+    color:var(--ink);
     display:flex;
     align-items:center;
     gap:8px;
     margin-top:3px;
   }
   .copy-btn{
-    border:none;
-    background:var(--ink);
-    color:var(--white);
-    font-family:'Inter', sans-serif;
-    font-size:11px;
-    font-weight:600;
-    padding:4px 9px;
-    border-radius:6px;
+    border:1px solid var(--green);
+    background:transparent;
+    color:var(--green);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:3px;
     cursor:pointer;
+    text-transform:uppercase;
   }
   .copy-btn:active{transform:scale(0.96);}
-  .copy-btn.copied{background:var(--teal);}
+  .copy-btn.copied{background:var(--green);color:var(--green-ink);}
   .card-note{
     font-size:13px;
     color:var(--muted);
-    line-height:1.5;
+    line-height:1.55;
   }
-  .card-note a{color:var(--teal);font-weight:600;}
+  .card-note a{color:var(--green);font-weight:600;}
 
   .field{margin-bottom:16px;}
   .field label{
     display:block;
-    font-size:13px;
-    font-weight:600;
+    font-size:12.5px;
+    font-weight:700;
     margin-bottom:6px;
+    color:var(--ink);
+    font-family:'IBM Plex Mono',monospace;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
   }
-  .field .hint{font-weight:400;color:var(--muted);font-size:12px;}
+  .field .hint{font-weight:400;color:var(--muted);font-size:11px;text-transform:none;letter-spacing:0;}
   .field input[type=text], .field input[type=email], .field input[type=password]{
     width:100%;
-    padding:12px 14px;
-    border:1px solid var(--divider);
-    border-radius:9px;
-    font-family:'Inter', sans-serif;
+    padding:11px 13px;
+    border:none;
+    border-bottom:2px solid var(--card-edge);
+    border-radius:0;
+    font-family:'Libre Franklin', sans-serif;
     font-size:15px;
-    background:var(--white);
+    background:transparent;
     color:var(--ink);
   }
-  .field input:focus{outline:2px solid var(--teal); outline-offset:1px;}
+  .field input::placeholder{color:#B7A985;}
+  .field input:focus{outline:none; border-bottom-color:var(--green);}
   .error-msg{color:var(--error);font-size:12px;margin-top:5px;display:none;}
-  .field.invalid input{border-color:var(--error);}
+  .field.invalid input{border-bottom-color:var(--error);}
   .field.invalid .error-msg{display:block;}
 
   .upload-box{
-    border:1.5px dashed var(--divider);
-    border-radius:10px;
+    border:1.5px dashed var(--card-edge);
+    border-radius:3px;
     padding:18px;
     text-align:center;
     cursor:pointer;
-    background:var(--paper);
+    background:rgba(43,36,25,0.02);
     transition:border-color 0.15s ease;
   }
-  .upload-box:hover{border-color:var(--teal);}
+  .upload-box:hover{border-color:var(--green);}
   .upload-box.has-image{padding:12px;}
   .upload-box input{display:none;}
-  .upload-icon{font-size:22px;margin-bottom:6px;}
-  .upload-text{font-size:13px;color:var(--muted);}
+  .upload-icon{font-size:20px;margin-bottom:6px;}
+  .upload-text{font-size:12.5px;color:var(--muted);}
   .upload-preview{
     max-width:100%;
     max-height:220px;
-    border-radius:8px;
+    border-radius:3px;
     display:block;
     margin:0 auto 8px;
+    filter:sepia(0.15);
   }
-  .upload-filename{font-size:12px;color:var(--teal);font-weight:600;}
+  .upload-filename{font-size:11.5px;color:var(--green);font-weight:600;font-family:'IBM Plex Mono',monospace;}
 
   .submit-btn{
     width:100%;
-    padding:15px;
-    background:var(--gold);
-    color:var(--ink);
+    padding:14px;
+    background:var(--green);
+    color:var(--green-ink);
     border:none;
-    border-radius:10px;
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:16px;
+    border-radius:3px;
+    font-family:'Special Elite', monospace;
+    font-weight:400;
+    font-size:15px;
+    letter-spacing:0.02em;
     cursor:pointer;
     margin-top:8px;
-    transition:transform 0.1s ease, background 0.15s ease;
+    transition:transform 0.1s ease, filter 0.15s ease;
   }
-  .submit-btn:hover{background:#dbb534;}
+  .submit-btn:hover{filter:brightness(1.15);}
   .submit-btn:active{transform:scale(0.98);}
-  .submit-btn:disabled{background:var(--divider);color:var(--muted);cursor:not-allowed;}
+  .submit-btn:disabled{background:var(--card-edge);color:var(--muted);cursor:not-allowed;}
 
-  .form-section{padding:20px 18px 22px;}
+  .getly-btn{
+    width:100%;
+    padding:14px;
+    background:var(--rust);
+    color:var(--green-ink);
+    border:none;
+    border-radius:3px;
+    font-family:'Special Elite', monospace;
+    font-weight:400;
+    font-size:15px;
+    cursor:pointer;
+    margin-top:4px;
+    display:block;
+    text-align:center;
+  }
+  .getly-btn:hover{filter:brightness(1.1);}
+
+  .form-section{padding:22px 20px 24px;}
 
   .success{
     display:none;
     text-align:center;
-    padding:36px 20px;
+    padding:40px 20px;
   }
   .success.active{display:block;}
   .success-icon{
-    width:52px;height:52px;
+    width:50px;height:50px;
     border-radius:50%;
-    background:var(--teal);
-    color:var(--white);
+    background:var(--green);
+    color:var(--green-ink);
     display:flex;align-items:center;justify-content:center;
-    font-size:26px;
+    font-size:24px;
     margin:0 auto 16px;
+    transform:rotate(-8deg);
+    border:2px dashed var(--green-ink);
   }
-  .success h2{font-family:'Fraunces', serif;font-size:22px;margin:0 0 8px;}
-  .success p{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 4px;}
+  .success h2{font-family:'Special Elite', monospace;font-weight:400;font-size:21px;margin:0 0 8px;color:var(--ink);}
+  .success p{color:var(--muted);font-size:13.5px;line-height:1.55;margin:0 0 4px;}
   .ref-code{
     font-family:'IBM Plex Mono', monospace;
     font-weight:600;
-    background:var(--paper);
-    border:1px solid var(--divider);
-    border-radius:8px;
-    padding:8px 12px;
+    background:transparent;
+    border:1.5px solid var(--rust);
+    color:var(--rust);
+    border-radius:3px;
+    padding:7px 14px;
     display:inline-block;
     margin-top:14px;
     font-size:13px;
+    transform:rotate(-1deg);
   }
   .email-note{
     font-size:12px;
@@ -279,80 +347,118 @@
     font-size:11px;
     color:var(--muted);
     margin-top:28px;
+    font-family:'IBM Plex Mono',monospace;
   }
   .footer-note button{
     background:none;border:none;color:var(--muted);
     text-decoration:underline;cursor:pointer;font-size:11px;
-    font-family:'Inter', sans-serif;
+    font-family:'IBM Plex Mono', monospace;
   }
 
   .status-toggle{
     text-align:center;
-    margin-top:10px;
+    margin-top:12px;
   }
   .status-toggle button{
-    background:none;border:none;color:var(--teal);
+    background:none;border:none;color:var(--green);
     text-decoration:underline;cursor:pointer;font-size:13px;font-weight:600;
-    font-family:'Inter', sans-serif;
+    font-family:'Libre Franklin', sans-serif;
   }
   .status-result{
     margin-top:16px;
     padding:16px;
-    border-radius:10px;
-    background:var(--paper);
-    border:1px solid var(--divider);
+    border-radius:3px;
+    background:rgba(43,36,25,0.03);
+    border:1px dashed var(--card-edge);
     font-size:14px;
+    color:var(--ink);
     display:none;
   }
   .status-result.show{display:block;}
   .status-badge{
     display:inline-block;
-    padding:4px 12px;
-    border-radius:100px;
+    padding:3px 12px;
+    border-radius:3px;
     font-family:'IBM Plex Mono', monospace;
-    font-size:12px;
-    font-weight:600;
+    font-size:11px;
+    font-weight:700;
     text-transform:uppercase;
     margin-top:6px;
+    letter-spacing:0.04em;
   }
-  .status-badge.pending{background:#F4E3C1;color:#8A5A00;}
-  .status-badge.succeed{background:#D8ECE3;color:var(--teal);}
-  .status-badge.notfound{background:#F3D9D2;color:var(--error);}
+  .status-badge.pending{background:transparent;color:var(--brass);border:1px solid var(--brass);}
+  .status-badge.succeed{background:var(--green);color:var(--green-ink);}
+  .status-badge.notfound{background:transparent;color:var(--rust);border:1px solid var(--rust);}
 
   .admin-panel{max-width:480px;margin:0 auto;}
   .admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
-  .admin-header h2{font-family:'Fraunces', serif;font-size:20px;margin:0;}
-  .back-link{background:none;border:none;color:var(--teal);font-weight:600;font-size:13px;cursor:pointer;}
+  .admin-header h2{font-family:'Special Elite', monospace;font-weight:400;font-size:19px;margin:0;color:var(--ink);}
+  .back-link{background:none;border:none;color:var(--green);font-weight:600;font-size:13px;cursor:pointer;}
   .order-card{
-    background:var(--white);
-    border:1px solid var(--divider);
-    border-radius:10px;
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:3px;
     padding:14px;
     margin-bottom:12px;
+    color:var(--ink);
   }
-  .order-card img{max-width:100%;border-radius:6px;margin-top:8px;}
-  .order-meta{font-size:12px;color:var(--muted);margin-top:4px;}
+  .order-card img{max-width:100%;border-radius:3px;margin-top:8px;}
+  .order-meta{font-size:12px;color:var(--muted);margin-top:4px;font-family:'IBM Plex Mono',monospace;}
   .order-meta b{color:var(--ink);}
-  .empty-state{text-align:center;color:var(--muted);font-size:13px;padding:40px 0;}
+  .empty-state{text-align:center;color:var(--muted);font-size:13px;padding:40px 0;font-family:'IBM Plex Mono',monospace;}
   .passcode-box{
     max-width:320px;margin:80px auto;text-align:center;
   }
   .passcode-box input{
-    width:100%;padding:12px;border:1px solid var(--divider);border-radius:8px;
+    width:100%;padding:12px;border:none;border-bottom:2px solid var(--card-edge);border-radius:0;
     text-align:center;font-family:'IBM Plex Mono',monospace;font-size:16px;margin:12px 0;
+    background:transparent;color:var(--ink);
+  }
+  .passcode-box input:focus{outline:none;border-bottom-color:var(--green);}
+
+  .catalog-header{
+    position:relative;
+    padding:12px 14px 12px;
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:3px;
+    box-shadow:0 1px 0 var(--card-edge), 0 6px 14px rgba(43,36,25,0.12);
+    margin-bottom:16px;
+  }
+  .catalog-header::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:5px;
+    background:var(--green);
+  }
+  .punch-hole{
+    position:absolute; top:10px; right:12px;
+    width:10px; height:10px; border-radius:50%;
+    background:var(--desk);
+    box-shadow:inset 0 1px 2px rgba(43,36,25,0.25);
   }
 </style>
 </head>
 <body>
 
 <div class="wrap" id="mainView">
-  <div class="eyebrow">Order form</div>
-  <h1>English Grammar<br>Full Book</h1>
-  <p class="subtitle">အင်္ဂလိပ်သဒ္ဒါ စာအုပ် အပြည့်အစုံ — စာအုပ်ဝယ်ယူရန် သင့်အချက်အလက်များ‌ အောက်တွင် ဖြည့်စွက်ပါ.</p>
-  <div class="price-tag">20,000 MMK <span>Price</span></div>
+  <div class="catalog-header">
+    <div class="punch-hole"></div>
+    <div class="eyebrow">Order form</div>
+    <h1>English Grammar<br>Full Book</h1>
+    <p class="subtitle">အင်္ဂလိပ်သဒ္ဒါ စာအုပ် အပြည့်အစုံ — စာအုပ်ဝယ်ယူရန် သင့်အချက်အလက်များ‌ အောက်တွင် ဖြည့်စွက်ပါ.</p>
+    <div class="price-tag">20,000 MMK <span>Price</span></div>
+  </div>
 
   <div class="step-label">1 · ငွေပေးချေမည့်နည်းလမ်းတစ်ခု ရွေးချယ်ပါ </div>
   <div class="ticket" id="methodsCard"></div>
+
+  <div class="status-toggle"><button id="showStatusBtn">Check my order status →</button></div>
+
+  <div class="footer-note">Your info is only visible to the seller.</div>
+</div>
+
+<div class="wrap" id="detailsView" style="display:none;">
+  <div class="status-toggle" style="text-align:left;margin-bottom:12px;"><button id="backFromDetailsBtn">← Back to payment methods</button></div>
 
   <div id="detailsWrap"></div>
 
@@ -387,10 +493,6 @@
       <button class="submit-btn" id="submitBtn">Submit order</button>
     </div>
   </div>
-
-  <div class="status-toggle"><button id="showStatusBtn">Check my order status →</button></div>
-
-  <div class="footer-note">Your info is only visible to the seller.</div>
 </div>
 
 <div class="wrap" id="successView" style="display:none;">
@@ -511,11 +613,6 @@ const METHODS = [
       <div class="detail-row"><span class="detail-label">SWIFT code</span><span class="detail-value">CITISGSG ${copyBtn('CITISGSG')}</span></div>
       <div class="detail-row"><span class="detail-label">Account no.</span><span class="detail-value">44990712283 ${copyBtn('44990712283')}</span></div>
       <div class="detail-row"><span class="detail-label">Account name</span><span class="detail-value">KKS</span></div>`
-  },
-  {
-    id:'card', title:'Visa / Master Card', sub:'ကဒ်ဖြင့်ဝယ်ယူမည်',
-    render:()=>`<p class="card-note">Pay securely by card, then come back here and fill in your details below to confirm your order.</p>
-      <a href="https://englishisyourfriend.github.io/English-Is-Your-Friend/" target="_blank" rel="noopener" class="submit-btn" style="display:block;text-align:center;text-decoration:none;">Pay with Visa / Mastercard →</a>`
   }
 ];
 
@@ -544,17 +641,31 @@ methodsCard.innerHTML = METHODS.map(m => `
       ${m.sub ? `<div class="m-sub">${m.sub}</div>` : ''}
     </div>
   </label>
-`).join('');
+`).join('') + `
+  <button data-getly-buy
+          data-store="YOUR_STORE_SLUG"
+          data-product="YOUR_PRODUCT_SLUG"
+          class="method getly-method-row" id="getlyDirectBtn" type="button">
+    <div class="m-text">
+      <div class="m-title">💳 Visa / Master Card</div>
+      <div class="m-sub">Direct card checkout — tap to pay now</div>
+    </div>
+  </button>
+`;
 
 const detailsWrap = document.getElementById('detailsWrap');
 
-methodsCard.querySelectorAll('.method').forEach(el=>{
+// Only the bank/wallet rows (they carry data-id) — the Visa/Mastercard row
+// is its own Getly checkout button and is excluded, so it never navigates
+// to page 2, it just opens the card widget directly.
+methodsCard.querySelectorAll('.method[data-id]').forEach(el=>{
   el.addEventListener('click', ()=>{
     selectedMethod = el.getAttribute('data-id');
-    methodsCard.querySelectorAll('.method').forEach(x=>x.classList.remove('selected'));
+    methodsCard.querySelectorAll('.method[data-id]').forEach(x=>x.classList.remove('selected'));
     el.classList.add('selected');
     el.querySelector('input').checked = true;
     renderDetails();
+    showView('details');
   });
 });
 
@@ -647,6 +758,7 @@ fileInput.addEventListener('change', async (e)=>{
 /* ---------- View routing ---------- */
 const views = {
   main: document.getElementById('mainView'),
+  details: document.getElementById('detailsView'),
   success: document.getElementById('successView'),
   status: document.getElementById('statusView'),
   adminPasscode: document.getElementById('adminPasscodeView'),
@@ -659,11 +771,12 @@ function showView(name){
 }
 document.getElementById('showStatusBtn').addEventListener('click', ()=>showView('status'));
 document.getElementById('backFromStatusBtn').addEventListener('click', ()=>showView('main'));
+document.getElementById('backFromDetailsBtn').addEventListener('click', ()=>{ showView('main'); resetForm(); });
 document.getElementById('backFromSuccessBtn').addEventListener('click', ()=>{ showView('main'); resetForm(); });
 
 function resetForm(){
   selectedMethod = null; uploadedImage = null;
-  methodsCard.querySelectorAll('.method').forEach(x=>{x.classList.remove('selected'); const r=x.querySelector('input'); if(r) r.checked=false;});
+  methodsCard.querySelectorAll('.method[data-id]').forEach(x=>{x.classList.remove('selected'); const r=x.querySelector('input'); if(r) r.checked=false;});
   detailsWrap.innerHTML = '';
   document.getElementById('buyerName').value = '';
   document.getElementById('buyerEmail').value = '';
